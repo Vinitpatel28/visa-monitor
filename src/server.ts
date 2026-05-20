@@ -6,12 +6,22 @@ import app from './app';
 import { config } from './config';
 import { logger } from './lib/logger';
 import { prisma } from './lib/prisma';
+import { seedDatabase } from './lib/dbSeeder';
 
 async function main() {
   try {
     // Test database connection
     await prisma.$connect();
     logger.info('✅ PostgreSQL connected');
+
+    // Run programmatic seeding if DB is empty
+    const userCount = await prisma.user.count();
+    if (userCount === 0) {
+      logger.info('🌱 Database is empty, initializing seed data...');
+      await seedDatabase(prisma);
+    } else {
+      logger.info(`📊 Database already has ${userCount} users. Skipping seeding.`);
+    }
 
     // Start HTTP server
     const server = app.listen(config.port, () => {
