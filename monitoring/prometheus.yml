@@ -1,0 +1,34 @@
+# ============================================================
+# Prometheus Configuration — Visa Monitor observability
+# ============================================================
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  # Application metrics (business + infra)
+  - job_name: 'visa-monitor-api'
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['api:3000']
+    scrape_interval: 15s
+
+  # Health check (quick availability probe)
+  - job_name: 'visa-monitor-health'
+    metrics_path: '/health'
+    static_configs:
+      - targets: ['api:3000']
+    scrape_interval: 10s
+
+  # PostgreSQL (requires postgres_exporter sidecar)
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['postgres-exporter:9187']
+    scrape_interval: 30s
+
+  # Redis (requires redis_exporter sidecar)
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis-exporter:9121']
+    scrape_interval: 30s

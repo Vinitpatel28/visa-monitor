@@ -1,0 +1,11 @@
+Passport Number,Full Name,Nationality,Visa Type,Status,File Number,Expiry Date,Sponsor Company,Department
+A12345678,Ahmed Al Mansouri,UAE,RESIDENCE,Valid,201/2024/1234567,2025-12-31,TechVision LLC,Operations
+B98765432,Rajesh Kumar,India,EMPLOYMENT,Expired,201/2024/7654321,2024-06-30,Gulf Construction,Engineering
+C55667788,Maria Santos,Philippines,EMPLOYMENT,Valid,201/2024/5566778,2026-03-15,Al Noor Medical,Nursing
+D11223344,James Wilson,UK,TOURIST,Cancelled,201/2024/1122334,2024-09-01,Visit Sponsor,Tourism
+E99887766,Fatima Hassan,Egypt,EMPLOYMENT,Valid,201/2024/9988776,2026-06-30,Emirates Foods,Finance
+F44556677,Wei Chen,China,EMPLOYMENT,Under Process,201/2024/4455667,2026-01-15,Dragon Trading,Logistics
+G77889900,Priya Sharma,India,RESIDENCE,Valid,201/2024/7788990,2026-08-20,Family Sponsor,HR
+H33221100,Omar Khalid,Pakistan,EMPLOYMENT,Expired,201/2024/3322110,2024-03-15,Al Futtaim Group,Maintenance
+I66554433,Anna Petrov,Russia,TOURIST,Used,201/2024/6655443,2024-12-01,Visit Sponsor,Tourism
+J88990011,David Kim,South Korea,EMPLOYMENT,Valid,201/2024/8899001,2026-11-30,Samsung Gulf,IT

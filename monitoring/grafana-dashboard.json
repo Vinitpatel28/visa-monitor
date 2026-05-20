@@ -1,0 +1,75 @@
+{
+  "dashboard": {
+    "id": null,
+    "uid": "visa-monitor-main",
+    "title": "Visa Monitor — Enterprise Dashboard",
+    "tags": ["visa", "monitor", "enterprise"],
+    "timezone": "browser",
+    "schemaVersion": 39,
+    "version": 1,
+    "refresh": "30s",
+    "panels": [
+      {
+        "title": "API Uptime",
+        "type": "stat",
+        "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 },
+        "targets": [{ "expr": "visa_monitor_uptime_seconds", "legendFormat": "uptime" }],
+        "fieldConfig": { "defaults": { "unit": "s" } }
+      },
+      {
+        "title": "Total Passengers",
+        "type": "stat",
+        "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 },
+        "targets": [{ "expr": "visa_monitor_passengers_total" }]
+      },
+      {
+        "title": "Active Visas",
+        "type": "stat",
+        "gridPos": { "h": 4, "w": 6, "x": 12, "y": 0 },
+        "targets": [{ "expr": "visa_monitor_visas_active" }]
+      },
+      {
+        "title": "Open Ghost Alerts",
+        "type": "stat",
+        "gridPos": { "h": 4, "w": 6, "x": 18, "y": 0 },
+        "targets": [{ "expr": "visa_monitor_ghost_alerts_open" }],
+        "fieldConfig": { "defaults": { "thresholds": { "steps": [{ "value": 0, "color": "green" }, { "value": 3, "color": "yellow" }, { "value": 5, "color": "red" }] } } }
+      },
+      {
+        "title": "Critical Ghost Alerts",
+        "type": "gauge",
+        "gridPos": { "h": 6, "w": 8, "x": 0, "y": 4 },
+        "targets": [{ "expr": "visa_monitor_ghost_alerts_critical" }],
+        "fieldConfig": { "defaults": { "max": 10, "thresholds": { "steps": [{ "value": 0, "color": "green" }, { "value": 1, "color": "orange" }, { "value": 3, "color": "red" }] } } }
+      },
+      {
+        "title": "Reconciliation Mismatches",
+        "type": "timeseries",
+        "gridPos": { "h": 6, "w": 16, "x": 8, "y": 4 },
+        "targets": [
+          { "expr": "visa_monitor_mismatches_total", "legendFormat": "Total" },
+          { "expr": "visa_monitor_mismatches_open", "legendFormat": "Open" }
+        ]
+      },
+      {
+        "title": "Infrastructure Status",
+        "type": "stat",
+        "gridPos": { "h": 4, "w": 12, "x": 0, "y": 10 },
+        "targets": [
+          { "expr": "visa_monitor_database_up", "legendFormat": "Database" },
+          { "expr": "visa_monitor_redis_up", "legendFormat": "Redis" }
+        ]
+      },
+      {
+        "title": "Imports & Audit Events",
+        "type": "timeseries",
+        "gridPos": { "h": 4, "w": 12, "x": 12, "y": 10 },
+        "targets": [
+          { "expr": "visa_monitor_imports_total", "legendFormat": "Imports" },
+          { "expr": "visa_monitor_audit_events_total", "legendFormat": "Audit Events" }
+        ]
+      }
+    ]
+  },
+  "overwrite": true
+}

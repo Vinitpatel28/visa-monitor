@@ -1,0 +1,291 @@
+// ============================================================
+// Visa Workflow Automation — Complete Database Schema
+// SQLite for development, PostgreSQL for production
+// ============================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================
+// USERS & AUTHENTICATION
+// ============================================================
+
+model User {
+  id            String   @id @default(uuid())
+  email         String   @unique
+  passwordHash  String   @map("password_hash")
+  role          String   @default("OPERATOR") // ADMIN, OPERATOR, VIEWER
+  isActive      Boolean  @default(true) @map("is_active")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  statusChanges         StatusHistory[]
+  resolvedMismatches    ReconciliationMismatch[] @relation("ResolvedBy")
+  acknowledgedAlerts    GhostAlert[]             @relation("AcknowledgedBy")
+  auditLogs             AuditLog[]
+  dataImports           DataImport[]
+
+  @@map("users")
+}
+
+// ============================================================
+// PASSPORT HOLDERS (PASSENGERS)
+// ============================================================
+
+model Passenger {
+  id              String    @id @default(uuid())
+  passportNumber  String    @unique @map("passport_number")
+  fullName        String    @map("full_name")
+  nationality     String?
+  dateOfBirth     DateTime? @map("date_of_birth")
+  passportExpiry  DateTime? @map("passport_expiry")
+  icpFileNumber   String?   @map("icp_file_number")
+  sponsorCompany  String?   @map("sponsor_company")
+  department      String?
+  lastVerifiedAt  DateTime? @map("last_verified_at")
+  lastVerifiedBy  String?   @map("last_verified_by")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  visaApplications VisaApplication[]
+
+  @@map("passengers")
+}
+
+// ============================================================
+// VISA APPLICATIONS
+// ============================================================
+
+model VisaApplication {
+  id              String    @id @default(uuid())
+  passengerId     String    @map("passenger_id")
+  visaNumber      String?   @unique @map("visa_number")
+  visaType        String?   @map("visa_type") // EMPLOYMENT, VISIT, TRANSIT, TOURIST, RESIDENCE
+  status          String    @default("PENDING") // PENDING, APPROVED, REJECTED, ACTIVE, EXPIRED, CANCELLED, IN_COUNTRY, EXITED
+  portalStatus    String?   @map("portal_status")
+  icpStatus       String?   @map("icp_status")
+  dataSource      String?   @map("data_source") // CSV_IMPORT, MANUAL_ENTRY, PLAYWRIGHT, API
+  issuedDate      DateTime? @map("issued_date")
+  expiryDate      DateTime? @map("expiry_date")
+  lastPortalSync  DateTime? @map("last_portal_sync")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  passenger       Passenger @relation(fields: [passengerId], references: [id])
+  statusHistory   StatusHistory[]
+  borderEvents    BorderEvent[]
+  mismatches      ReconciliationMismatch[]
+  ghostAlerts     GhostAlert[]
+
+  @@map("visa_applications")
+}
+
+// ============================================================
+// STATUS HISTORY (Immutable, append-only audit trail)
+// ============================================================
+
+model StatusHistory {
+  id             String   @id @default(uuid())
+  applicationId  String   @map("application_id")
+  oldStatus      String?  @map("old_status")
+  newStatus      String   @map("new_status")
+  changedBy      String?  @map("changed_by")
+  source         String   // MANUAL, PORTAL_SYNC, ENTRY_EVENT, EXIT_EVENT, RECONCILIATION, SYSTEM
+  notes          String?
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  application    VisaApplication @relation(fields: [applicationId], references: [id])
+  user           User?           @relation(fields: [changedBy], references: [id])
+
+  @@map("status_history")
+}
+
+// ============================================================
+// BORDER EVENTS (Entry/Exit tracking)
+// ============================================================
+
+model BorderEvent {
+  id              String   @id @default(uuid())
+  applicationId   String   @map("application_id")
+  eventType       String   @map("event_type") // ENTRY, EXIT
+  eventDatetime   DateTime @map("event_datetime")
+  portOfEntry     String?  @map("port_of_entry")
+  idempotencyKey  String   @unique @map("idempotency_key")
+  source          String?  // MANUAL, AUTOMATION, WEBHOOK
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  application     VisaApplication @relation(fields: [applicationId], references: [id])
+
+  @@index([applicationId])
+  @@index([eventDatetime])
+  @@map("border_events")
+}
+
+// ============================================================
+// RECONCILIATION SYSTEM
+// ============================================================
+
+model ReconciliationJob {
+  id              String    @id @default(uuid())
+  jobType         String    @map("job_type") // FULL, TARGETED, TRIGGERED
+  status          String    @default("PENDING") // PENDING, RUNNING, COMPLETED, FAILED
+  totalRecords    Int?      @map("total_records")
+  checkedRecords  Int       @default(0) @map("checked_records")
+  mismatchCount   Int       @default(0) @map("mismatch_count")
+  ghostCount      Int       @default(0) @map("ghost_count")
+  startedAt       DateTime? @map("started_at")
+  completedAt     DateTime? @map("completed_at")
+  errorMessage    String?   @map("error_message")
+  createdAt       DateTime  @default(now()) @map("created_at")
+
+  mismatches      ReconciliationMismatch[]
+
+  @@map("reconciliation_jobs")
+}
+
+model ReconciliationMismatch {
+  id               String    @id @default(uuid())
+  jobId            String    @map("job_id")
+  applicationId    String    @map("application_id")
+  internalStatus   String    @map("internal_status")
+  portalStatus     String    @map("portal_status")
+  mismatchType     String?   @map("mismatch_type") // STATUS_MISMATCH, GHOST_PASSENGER, MISSING_RECORD
+  riskLevel        String?   @map("risk_level") // LOW, MEDIUM, HIGH, CRITICAL
+  ghostScore       Int?      @map("ghost_score")
+  autoResolved     Boolean   @default(false) @map("auto_resolved")
+  resolvedAt       DateTime? @map("resolved_at")
+  resolvedBy       String?   @map("resolved_by")
+  resolutionNotes  String?   @map("resolution_notes")
+  createdAt        DateTime  @default(now()) @map("created_at")
+
+  job              ReconciliationJob   @relation(fields: [jobId], references: [id])
+  application      VisaApplication     @relation(fields: [applicationId], references: [id])
+  resolvedByUser   User?               @relation("ResolvedBy", fields: [resolvedBy], references: [id])
+  ghostAlerts      GhostAlert[]
+
+  @@map("reconciliation_mismatches")
+}
+
+// ============================================================
+// GHOST ALERTS
+// ============================================================
+
+model GhostAlert {
+  id                  String    @id @default(uuid())
+  applicationId       String    @map("application_id")
+  mismatchId          String?   @map("mismatch_id")
+  ghostScore          Int       @map("ghost_score")
+  riskLevel           String    @map("risk_level") // LOW, MEDIUM, HIGH, CRITICAL
+  status              String    @default("OPEN") // OPEN, ACKNOWLEDGED, INVESTIGATING, RESOLVED, FALSE_POSITIVE
+  lastKnownLocation   String?   @map("last_known_location")
+  hoursSinceExit      Float?    @map("hours_since_exit")
+  suggestedAction     String?   @map("suggested_action")
+  acknowledgedBy      String?   @map("acknowledged_by")
+  acknowledgedAt      DateTime? @map("acknowledged_at")
+  resolvedAt          DateTime? @map("resolved_at")
+  createdAt           DateTime  @default(now()) @map("created_at")
+
+  application         VisaApplication        @relation(fields: [applicationId], references: [id])
+  mismatch            ReconciliationMismatch? @relation(fields: [mismatchId], references: [id])
+  acknowledgedByUser  User?                  @relation("AcknowledgedBy", fields: [acknowledgedBy], references: [id])
+
+  @@map("ghost_alerts")
+}
+
+// ============================================================
+// OTP SESSIONS
+// ============================================================
+
+model OtpSession {
+  id            String   @id @default(uuid())
+  identifier    String
+  otpHash       String   @map("otp_hash")
+  attempts      Int      @default(0)
+  maxAttempts   Int      @default(3) @map("max_attempts")
+  expiresAt     DateTime @map("expires_at")
+  verified      Boolean  @default(false)
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@map("otp_sessions")
+}
+
+// ============================================================
+// AUDIT LOGS (Immutable system-wide audit trail)
+// ============================================================
+
+model AuditLog {
+  id          String   @id @default(uuid())
+  userId      String?  @map("user_id")
+  action      String
+  entityType  String?  @map("entity_type")
+  entityId    String?  @map("entity_id")
+  oldValues   String?  @map("old_values") // JSON string for SQLite
+  newValues   String?  @map("new_values") // JSON string for SQLite
+  ipAddress   String?  @map("ip_address")
+  userAgent   String?  @map("user_agent")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  user        User?    @relation(fields: [userId], references: [id])
+
+  @@index([entityType, entityId])
+  @@index([userId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+// ============================================================
+// AUTOMATION LOGS (Worker execution tracking)
+// ============================================================
+
+model AutomationLog {
+  id             String   @id @default(uuid())
+  workerId       String?  @map("worker_id")
+  jobQueue       String?  @map("job_queue")
+  jobId          String?  @map("job_id")
+  passportHash   String?  @map("passport_hash")
+  action         String?
+  status         String?  // SUCCESS, FAILED, RETRY
+  attempts       Int      @default(1)
+  durationMs     Int?     @map("duration_ms")
+  errorMessage   String?  @map("error_message")
+  screenshotUrl  String?  @map("screenshot_url")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  @@map("automation_logs")
+}
+
+// ============================================================
+// DATA IMPORTS (CSV/Excel upload tracking)
+// ============================================================
+
+model DataImport {
+  id              String    @id @default(uuid())
+  fileName        String    @map("file_name")
+  fileType        String    @map("file_type")     // CSV, XLSX
+  source          String    @default("PRO_REPORT") // PRO_REPORT, MANUAL_EXPORT, SYSTEM_BACKUP
+  totalRecords    Int       @default(0) @map("total_records")
+  processedCount  Int       @default(0) @map("processed_count")
+  matchedCount    Int       @default(0) @map("matched_count")
+  mismatchedCount Int       @default(0) @map("mismatched_count")
+  newRecordCount  Int       @default(0) @map("new_record_count")
+  errorCount      Int       @default(0) @map("error_count")
+  status          String    @default("PENDING") // PENDING, PROCESSING, COMPLETED, FAILED
+  errorMessage    String?   @map("error_message")
+  importedBy      String?   @map("imported_by")
+  columnMapping   String?   @map("column_mapping") // JSON: detected column mapping
+  summary         String?                          // JSON: reconciliation summary
+  completedAt     DateTime? @map("completed_at")
+  createdAt       DateTime  @default(now()) @map("created_at")
+
+  importedByUser  User?     @relation(fields: [importedBy], references: [id])
+
+  @@index([status])
+  @@index([createdAt])
+  @@map("data_imports")
+}
