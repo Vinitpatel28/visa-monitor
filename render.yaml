@@ -4,12 +4,13 @@ databases:
     databaseName: visa_monitor
     user: admin
 
-  - name: visa-redis
-    type: redis
+services:
+  # Cache Database (Redis)
+  - type: redis
+    name: visa-redis
     plan: free
     maxmemoryPolicy: noeviction
 
-services:
   # 1. Backend Web API
   - type: web
     name: visa-backend
@@ -29,7 +30,8 @@ services:
           name: visa-postgres
           property: connectionString
       - key: REDIS_URL
-        fromDatabase:
+        fromService:
+          type: redis
           name: visa-redis
           property: connectionString
 
