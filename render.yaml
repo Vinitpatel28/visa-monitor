@@ -9,6 +9,7 @@ services:
   - type: redis
     name: visa-redis
     plan: free
+    ipAllowList: []
     maxmemoryPolicy: noeviction
 
   # 1. Backend Web API
@@ -44,8 +45,8 @@ services:
     buildCommand: "npm install && npm run build"
     startCommand: "npm start"
     envVars:
-      - key: NEXT_PUBLIC_API_URL
+      - key: NEXT_PUBLIC_API_HOST
         fromService:
           type: web
           name: visa-backend
-          property: url
+          property: host
