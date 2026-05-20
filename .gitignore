@@ -6,5 +6,6 @@ screenshots/
 reports/
 coverage/
 .prisma/
+*.db
 
 /src/generated/prisma
