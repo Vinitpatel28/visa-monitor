@@ -35,6 +35,12 @@ services:
           type: redis
           name: visa-redis
           property: connectionString
+      - key: CORS_ORIGIN
+        value: "*"
+      - key: ENCRYPTION_KEY
+        value: "32-byte-hex-key-change-in-prod-00"
+      - key: ENCRYPTION_IV
+        value: "16-byte-iv-change"
 
   # 2. Frontend Next.js Dashboard
   - type: web

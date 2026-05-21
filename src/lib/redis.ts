@@ -11,21 +11,30 @@ let redis: Redis;
 let redisAvailable = false;
 
 try {
-  redis = new Redis({
-    host: config.redis.host,
-    port: config.redis.port,
-    password: config.redis.password,
+  // Use REDIS_URL connection string (Render) or fall back to host/port (local dev)
+  const redisOptions: any = {
     maxRetriesPerRequest: null,
     enableReadyCheck: false,
     lazyConnect: true,
-    retryStrategy(times) {
+    retryStrategy(times: number) {
       if (times > 3) {
         logger.warn('Redis unavailable — using in-memory fallback for development');
         return null; // Stop retrying
       }
       return Math.min(times * 200, 2000);
     },
-  });
+  };
+
+  if (config.redis.url) {
+    redis = new Redis(config.redis.url, redisOptions);
+  } else {
+    redis = new Redis({
+      host: config.redis.host,
+      port: config.redis.port,
+      password: config.redis.password,
+      ...redisOptions,
+    });
+  }
 
   redis.on('connect', () => {
     redisAvailable = true;

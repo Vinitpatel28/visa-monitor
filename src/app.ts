@@ -34,9 +34,10 @@ const app = express();
 // Security headers
 app.use(helmet());
 
-// CORS
+// CORS — support '*' or comma-separated origins
+const corsOrigins = config.corsOrigin;
 app.use(cors({
-  origin: config.corsOrigin,
+  origin: corsOrigins === '*' ? true : corsOrigins.split(',').map(s => s.trim()),
   credentials: true,
   methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],

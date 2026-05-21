@@ -25,7 +25,15 @@ export default function LoginPage() {
       localStorage.setItem("user", JSON.stringify(user));
       router.push("/dashboard");
     } catch (err: any) {
-      setError(err.response?.data?.error?.message || "Invalid credentials");
+      if (err.response) {
+        // Server responded with an error status
+        setError(err.response.data?.error?.message || `Server error: ${err.response.status}`);
+      } else if (err.request) {
+        // No response received — network/proxy/CORS issue
+        setError("Cannot reach server. Please check your connection.");
+      } else {
+        setError("Login failed. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
