@@ -237,8 +237,8 @@ export class ReconciliationEngine {
 
     const internalStatus = app.status;
 
-    // Determine portal status (use stored portalStatus or simulate)
-    const portalStatus = app.portalStatus || this.simulatePortalStatus(app);
+    // Determine portal status (use stored portalStatus or icpStatus, or fallback to simulation)
+    const portalStatus = app.portalStatus || app.icpStatus || this.simulatePortalStatus(app);
 
     // ═══════════════════════════════════════
     // CHECK 1: Status mismatch detection

@@ -4,13 +4,14 @@ import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import {
   LayoutDashboard, Users, FileText, AlertTriangle,
-  BarChart3, LogOut, Shield, ChevronRight, Menu, X, Upload, Zap, ScrollText, Settings,
+  BarChart3, LogOut, Shield, ChevronRight, Menu, X, Upload, Zap, ScrollText, Settings, Globe
 } from "lucide-react";
 
 const navItems = [
   { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
   { href: "/dashboard/passengers", label: "Passengers", icon: Users },
   { href: "/dashboard/applications", label: "Applications", icon: FileText },
+  { href: "/dashboard/icp", label: "ICP Portal Check", icon: Globe },
   { href: "/dashboard/ghosts", label: "Ghost Alerts", icon: AlertTriangle },
   { href: "/dashboard/reconciliation", label: "Reconciliation", icon: Zap },
   { href: "/dashboard/import", label: "Import Data", icon: Upload },

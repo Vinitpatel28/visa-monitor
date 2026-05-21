@@ -11,6 +11,12 @@ export { ReconciliationEngine, reconciliationEngine } from './ReconciliationEngi
 export { AlertService, alertService } from './AlertService';
 export { JobScheduler, scheduler } from './Scheduler';
 
+// ICP Portal scraper exports
+export { ICPSessionManager, icpSessionManager } from './ICPSessionManager';
+export { ICPStatusFetcher, icpStatusFetcher } from './ICPStatusFetcher';
+export { startICPMockPortal } from './ICPMockPortal';
+
 export type { PortalCredentials, SessionInfo } from './BrowserSessionManager';
 export type { PortalStatusResult, StatusFetchOptions } from './StatusFetcher';
 export type { StatusCheckJob, ReconciliationJobData } from './AutomationWorker';
+export type { ICPCheckInput, ICPCheckResult } from './ICPStatusFetcher';

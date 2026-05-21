@@ -151,3 +151,27 @@ export const importAPI = {
   downloadTemplate: () =>
     api.get('/import/template/download', { responseType: 'blob' }),
 };
+
+// ========================
+// ICP PORTAL INTEGRATION
+// ========================
+export const icpAPI = {
+  check: (data: {
+    passportNumber: string;
+    passportExpiry: string;
+    nationality: string;
+    permitType: 'RESIDENCY' | 'VISA';
+    applicationId?: string;
+  }) => api.post('/icp/check', data),
+  checkBatch: (passports: Array<{
+    passportNumber: string;
+    passportExpiry: string;
+    nationality: string;
+    permitType: 'RESIDENCY' | 'VISA';
+    applicationId?: string;
+  }>) => api.post('/icp/check-batch', { passports }),
+  getStatus: () => api.get('/icp/status'),
+  getHistory: (params?: { page?: number; limit?: number }) => api.get('/icp/history', { params }),
+  resetCircuitBreaker: () => api.post('/icp/reset'),
+  shutdownBrowser: () => api.post('/icp/shutdown'),
+};

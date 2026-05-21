@@ -62,4 +62,15 @@ export const config = {
     reconciliationCron: process.env.BULL_RECONCILIATION_CRON || '0 */6 * * *',
     ghostCheckCron: process.env.BULL_GHOST_CHECK_CRON || '*/30 * * * *',
   },
+
+  // ICP Portal Scraper Config
+  icp: {
+    portalUrl: process.env.ICP_PORTAL_URL || 'http://localhost:4001/#/fileValidity', // Defaults to Mock Portal!
+    headless: process.env.ICP_HEADLESS === 'true', // Headful by default for manual CAPTCHA solving
+    captchaTimeoutMs: parseInt(process.env.ICP_CAPTCHA_TIMEOUT || '60000', 10),
+    resultTimeoutMs: parseInt(process.env.ICP_RESULT_TIMEOUT || '15000', 10),
+    delayBetweenChecks: parseInt(process.env.ICP_DELAY_BETWEEN || '10000', 10),
+    maxChecksPerHour: parseInt(process.env.ICP_MAX_PER_HOUR || '20', 10),
+    screenshotDir: process.env.ICP_SCREENSHOT_DIR || './screenshots/icp',
+  },
 } as const;

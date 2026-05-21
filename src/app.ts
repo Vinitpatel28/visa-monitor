@@ -24,6 +24,7 @@ import adminRoutes from './routes/admin';
 import reportRoutes from './reports';
 import importRoutes from './routes/import';
 import metricsRoutes from './routes/metrics';
+import icpRoutes from './routes/icp';
 
 const app = express();
 
@@ -113,6 +114,7 @@ app.use(`${prefix}/ghosts`, ghostRoutes);
 app.use(`${prefix}/admin`, adminRoutes);
 app.use(`${prefix}/reports`, reportRoutes);
 app.use(`${prefix}/import`, importRoutes);
+app.use(`${prefix}/icp`, icpRoutes);
 
 // ========================
 // 404 HANDLER
